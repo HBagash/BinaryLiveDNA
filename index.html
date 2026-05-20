@@ -1632,8 +1632,13 @@ async function submitQuiz() {
     answered: isAnswered(i)
   }));
 
+  // Privacy: only the first-letter initial is persisted (Firestore + local backup).
+  // The full name stays in this browser's localStorage for the welcome tag and
+  // the downloadable PDF report — it never leaves the student's device.
+  const initial = (studentName.trim().charAt(0) || '?').toUpperCase();
+
   const submission = {
-    studentName,
+    studentName: initial,
     classCode,
     score,
     total,
