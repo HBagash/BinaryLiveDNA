@@ -327,6 +327,125 @@
       font-weight: 700;
     }
 
+    /* ── Endless Mode ─────────────────────────────── */
+    #endless-main { display: none; max-width: 720px; margin: 32px auto; padding: 0 16px 64px; }
+
+    .endless-hud {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .endless-stat {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 12px;
+      text-align: center;
+      transition: transform .15s, border-color .15s;
+    }
+    .endless-stat .stat-label {
+      font-size: .7rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-bottom: 4px;
+    }
+    .endless-stat .stat-value {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--blue-d);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .endless-stat.streak .stat-value { color: #ea580c; }
+    .endless-stat.best .stat-value { color: #7c3aed; }
+    .endless-stat.pulse { animation: pulsePop .4s ease; }
+    @keyframes pulsePop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.08); border-color: var(--green); }
+      100% { transform: scale(1); }
+    }
+
+    .endless-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 26px 28px;
+      box-shadow: 0 4px 14px rgba(0,0,0,.06);
+      text-align: center;
+    }
+    .endless-mode-chip {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .endless-mode-chip.bin { background: #ecfdf5; color: #065f46; }
+    .endless-mode-chip.den { background: #eff6ff; color: #1d4ed8; }
+    .endless-mode-chip.hex { background: #fef3c7; color: #92400e; }
+
+    .endless-prompt {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .endless-number {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #0f172a;
+      background: #f1f5f9;
+      border: 1px solid #dde4ed;
+      border-radius: 10px;
+      padding: 14px 22px;
+      display: inline-block;
+      margin: 8px 0 18px;
+      letter-spacing: 2px;
+    }
+    .endless-input {
+      width: 100%;
+      max-width: 320px;
+      padding: 14px 18px;
+      font-size: 1.3rem;
+      text-align: center;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-weight: 700;
+      transition: border-color .15s, background .15s;
+    }
+    .endless-input:focus { border-color: var(--blue); }
+    .endless-input.correct { border-color: var(--green); background: #f0fdf4; color: #15803d; }
+    .endless-input.wrong   { border-color: var(--red);   background: #fef2f2; color: #b91c1c; }
+
+    .endless-feedback {
+      min-height: 28px;
+      margin-top: 14px;
+      font-size: .95rem;
+      font-weight: 600;
+    }
+    .endless-feedback.correct { color: var(--green); }
+    .endless-feedback.wrong   { color: var(--red); }
+
+    .endless-hint {
+      font-size: .82rem;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    .streak-flame {
+      display: inline-block;
+      margin-left: 4px;
+    }
+
     /* ── Submit section ───────────────────────────── */
     #submit-section {
       margin-top: 28px;
@@ -864,6 +983,35 @@
   </div>
 </main>
 
+<main id="endless-main">
+  <div class="endless-hud">
+    <div class="endless-stat score" id="endless-stat-score">
+      <div class="stat-label">Score</div>
+      <div class="stat-value" id="endless-score">0</div>
+    </div>
+    <div class="endless-stat streak" id="endless-stat-streak">
+      <div class="stat-label">Streak</div>
+      <div class="stat-value"><span id="endless-streak">0</span><span class="streak-flame" id="endless-flame"></span></div>
+    </div>
+    <div class="endless-stat best">
+      <div class="stat-label">Best Streak</div>
+      <div class="stat-value" id="endless-best">0</div>
+    </div>
+  </div>
+
+  <div class="endless-card">
+    <div class="endless-mode-chip" id="endless-chip">—</div>
+    <div class="endless-prompt" id="endless-prompt">Loading…</div>
+    <div class="endless-number" id="endless-number">—</div>
+    <div>
+      <input id="endless-input" class="endless-input" type="text" inputmode="text"
+        autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Your answer" />
+    </div>
+    <div class="endless-feedback" id="endless-feedback">&nbsp;</div>
+    <div class="endless-hint">Press <strong>Enter</strong> to submit · Endless mode — keep going!</div>
+  </div>
+</main>
+
 <!-- ── Name Prompt Modal ─────────────────────────── -->
 <div id="name-modal" class="modal-backdrop">
   <div class="modal">
@@ -1005,7 +1153,7 @@ const QUESTIONS = [
   {
     type: 'scaffold-binary',
     topic: 'Binary → Denary',
-    text: 'Convert the binary number <code>10110101</code> into denary.<br><span class="fill-hint">Use the place-value table below — click each cell to switch it between 0 and 1. The running total will help you check. Type your final denary answer in the box.</span>',
+    text: 'Convert the binary number <code>10110101</code> into denary.',
     binary: '10110101',
     accepted: ['181'],
     display: '181',
@@ -1016,7 +1164,7 @@ const QUESTIONS = [
   {
     type: 'scaffold-hex',
     topic: 'Hex → Denary',
-    text: 'Convert the hexadecimal number <code>2A</code> into denary.<br><span class="fill-hint">Use the place-value table below. Remember: in hex, A=10, B=11, C=12, D=13, E=14, F=15. Type your final denary answer in the box.</span>',
+    text: 'Convert the hexadecimal number <code>2A</code> into denary.',
     hex: '2A',
     accepted: ['42'],
     display: '42',
@@ -1130,7 +1278,19 @@ function forgetMe() {
 }
 
 // Auto-start if we already know who you are
-(function tryRememberedName() {
+// (Endless-mode lock takes priority and is checked first.)
+(function bootFlow() {
+  // If they've already submitted this session, jump straight to endless mode.
+  try {
+    if (sessionStorage.getItem('endlessUnlocked') === '1') {
+      const remembered = (localStorage.getItem('studentName') || '').trim();
+      if (remembered.length >= 2) studentName = remembered;
+      document.getElementById('name-modal').style.display = 'none';
+      startEndlessMode();
+      return;
+    }
+  } catch (e) {}
+
   try {
     const remembered = localStorage.getItem('studentName');
     if (remembered && remembered.trim().length >= 2) {
@@ -1138,6 +1298,201 @@ function forgetMe() {
     }
   } catch (e) {}
 })();
+
+/* ════════════════════════════════════════════════════
+   ENDLESS MODE
+   ════════════════════════════════════════════════════ */
+const endless = {
+  score: 0,
+  streak: 0,
+  best: 0,
+  current: null,   // { mode, prompt, displayNumber, accepted: string[] }
+  locked: false    // true while showing feedback / waiting for next question
+};
+
+function loadEndlessBest() {
+  try {
+    const v = parseInt(localStorage.getItem('endlessBestStreak') || '0', 10);
+    return Number.isFinite(v) && v >= 0 ? v : 0;
+  } catch (e) { return 0; }
+}
+function saveEndlessBest(v) {
+  try { localStorage.setItem('endlessBestStreak', String(v)); } catch (e) {}
+}
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function toBinary(n) {
+  return n.toString(2);
+}
+function toHex(n) {
+  return n.toString(16).toUpperCase();
+}
+
+// Pick a question type at random and build the prompt.
+// Ranges chosen so a SEND student can do them on paper:
+//   bin->den: 4-bit (0–15)
+//   den->bin: 0–15 (4-bit answer)
+//   hex->den: 1–2 hex digits (0–255)
+function generateEndlessQuestion() {
+  const modes = ['bin2den', 'den2bin', 'hex2den'];
+  const mode = modes[Math.floor(Math.random() * modes.length)];
+
+  if (mode === 'bin2den') {
+    const n = randInt(1, 15);  // skip 0 so the binary isn't just "0"
+    return {
+      mode,
+      chip: { cls: 'bin', text: 'Binary → Denary' },
+      prompt: 'Convert this binary number to denary:',
+      displayNumber: toBinary(n).padStart(4, '0'),
+      accepted: [String(n)]
+    };
+  }
+  if (mode === 'den2bin') {
+    const n = randInt(1, 15);
+    const bin = toBinary(n);
+    // Accept with or without leading zeros up to 4 bits.
+    const padded = bin.padStart(4, '0');
+    const accepted = new Set([bin, padded]);
+    return {
+      mode,
+      chip: { cls: 'den', text: 'Denary → Binary' },
+      prompt: 'Convert this denary number to binary:',
+      displayNumber: String(n),
+      accepted: Array.from(accepted)
+    };
+  }
+  // hex2den
+  const n = randInt(10, 255);  // start at 10 so single-digit hex is rare-ish
+  return {
+    mode,
+    chip: { cls: 'hex', text: 'Hex → Denary' },
+    prompt: 'Convert this hexadecimal number to denary:',
+    displayNumber: toHex(n),
+    accepted: [String(n)]
+  };
+}
+
+function renderEndlessQuestion() {
+  const q = endless.current;
+  if (!q) return;
+  document.getElementById('endless-chip').className = 'endless-mode-chip ' + q.chip.cls;
+  document.getElementById('endless-chip').textContent = q.chip.text;
+  document.getElementById('endless-prompt').textContent = q.prompt;
+  document.getElementById('endless-number').textContent = q.displayNumber;
+
+  const input = document.getElementById('endless-input');
+  input.value = '';
+  input.classList.remove('correct', 'wrong');
+  input.disabled = false;
+  // den->bin answers are 0/1 strings; the others are numeric. Hint the keyboard.
+  input.inputMode = (q.mode === 'den2bin') ? 'numeric' : 'numeric';
+  input.placeholder = (q.mode === 'den2bin') ? 'e.g. 1011' : 'Type a number';
+  setTimeout(() => input.focus(), 30);
+
+  document.getElementById('endless-feedback').innerHTML = '&nbsp;';
+  document.getElementById('endless-feedback').className = 'endless-feedback';
+}
+
+function updateEndlessHud(pulse) {
+  document.getElementById('endless-score').textContent = String(endless.score);
+  document.getElementById('endless-streak').textContent = String(endless.streak);
+  document.getElementById('endless-best').textContent = String(endless.best);
+
+  // Flame escalates with streak.
+  let flame = '';
+  if (endless.streak >= 25) flame = ' 🔥🔥🔥';
+  else if (endless.streak >= 10) flame = ' 🔥🔥';
+  else if (endless.streak >= 3) flame = ' 🔥';
+  document.getElementById('endless-flame').textContent = flame;
+
+  if (pulse) {
+    const el = document.getElementById('endless-stat-score');
+    el.classList.remove('pulse');
+    // Force reflow so the animation can restart.
+    void el.offsetWidth;
+    el.classList.add('pulse');
+  }
+}
+
+function submitEndlessAnswer() {
+  if (endless.locked) return;
+  const input = document.getElementById('endless-input');
+  const raw = (input.value || '').trim().toLowerCase();
+  if (!raw) return;
+
+  const q = endless.current;
+  const correct = q.accepted.map(a => a.toLowerCase()).includes(raw);
+  const feedback = document.getElementById('endless-feedback');
+
+  endless.locked = true;
+  input.disabled = true;
+
+  if (correct) {
+    endless.score += 1;
+    endless.streak += 1;
+    if (endless.streak > endless.best) {
+      endless.best = endless.streak;
+      saveEndlessBest(endless.best);
+    }
+    input.classList.add('correct');
+    const cheers = ['Nice!', 'Correct!', 'Yes!', 'Smooth.', 'Locked in.', 'Easy.'];
+    const cheer = cheers[Math.floor(Math.random() * cheers.length)];
+    let bonus = '';
+    if (endless.streak === 3)  bonus = ' — streak of 3! 🔥';
+    if (endless.streak === 10) bonus = ' — streak of 10! 🔥🔥';
+    if (endless.streak === 25) bonus = ' — streak of 25! 🔥🔥🔥';
+    if (endless.streak === 50) bonus = ' — 50!! You\'re cooking 👨‍🍳';
+    feedback.textContent = '✓ ' + cheer + bonus;
+    feedback.className = 'endless-feedback correct';
+    updateEndlessHud(true);
+    setTimeout(nextEndlessQuestion, 650);
+  } else {
+    endless.streak = 0;
+    input.classList.add('wrong');
+    feedback.textContent = `✗ Not quite — answer was ${q.accepted[0]}`;
+    feedback.className = 'endless-feedback wrong';
+    updateEndlessHud(false);
+    setTimeout(nextEndlessQuestion, 1400);
+  }
+}
+
+function nextEndlessQuestion() {
+  endless.locked = false;
+  endless.current = generateEndlessQuestion();
+  renderEndlessQuestion();
+}
+
+function startEndlessMode() {
+  // Hide quiz UI, show endless UI.
+  document.getElementById('quiz-main').style.display = 'none';
+  document.getElementById('endless-main').style.display = 'block';
+
+  // Update the student tag with an endless-mode badge if we have a name.
+  if (studentName) {
+    const tag = document.getElementById('student-tag');
+    tag.innerHTML = '👤 ' + escapeHtml(studentName) +
+      ' <span style="background:rgba(255,255,255,.25);padding:2px 8px;border-radius:999px;font-size:.78rem;margin-left:6px;">Endless</span>';
+    tag.style.display = 'inline-block';
+  }
+
+  endless.score = 0;
+  endless.streak = 0;
+  endless.best = loadEndlessBest();
+  updateEndlessHud(false);
+  nextEndlessQuestion();
+
+  // Bind Enter once.
+  const input = document.getElementById('endless-input');
+  if (!input.dataset.bound) {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitEndlessAnswer();
+    });
+    input.dataset.bound = '1';
+  }
+}
 
 /* ════════════════════════════════════════════════════
    RENDER
@@ -1161,47 +1516,8 @@ function renderQuestions() {
         </select>
       </div>`;
 
-    } else if (q.type === 'scaffold-binary') {
-      const places = [128, 64, 32, 16, 8, 4, 2, 1];
-      const digits = q.binary.split('');
+    } else if (q.type === 'scaffold-binary' || q.type === 'scaffold-hex') {
       inputHtml = `
-        <div class="scaffold-block">
-          <div class="scaffold-label">The number:</div>
-          <div class="scaffold-binary">
-            ${digits.map(d => `<div class="scaffold-binary-digit">${d}</div>`).join('')}
-          </div>
-          <div class="scaffold-label">Place-value table — click each cell to toggle 0 / 1:</div>
-          <div class="scaffold-table cols-8">
-            ${places.map(p => `<div class="scaffold-head">${p}</div>`).join('')}
-            ${places.map((p, i) => `<div class="scaffold-cell" id="bcell-${qi}-${i}" data-val="${p}" data-on="0" onclick="toggleScaffold(${qi}, ${i}, 'binary')">0</div>`).join('')}
-          </div>
-          <div class="scaffold-total">Running total: <strong id="btotal-${qi}">0</strong></div>
-        </div>
-        <div class="fill-wrap">
-          <span class="fill-hint" style="margin-bottom:4px;">Final answer (denary):</span>
-          <input class="fill-input" id="fill-${qi}" type="text" inputmode="numeric"
-            placeholder="${q.placeholder}" autocomplete="off" autocorrect="off" spellcheck="false"
-            oninput="typeFill(${qi}, this.value)" />
-        </div>`;
-
-    } else if (q.type === 'scaffold-hex') {
-      const hexDigits = q.hex.split('');
-      // Place values for 2-digit hex: 16, 1
-      const places = [16, 1];
-      inputHtml = `
-        <div class="scaffold-block">
-          <div class="scaffold-label">The number:</div>
-          <div class="scaffold-binary">
-            ${hexDigits.map(d => `<div class="scaffold-binary-digit" style="color:#a78bfa;">${d}</div>`).join('')}
-          </div>
-          <div class="scaffold-label">Hex place-value table — click each cell to cycle 0 → 1 → 2 … 9 → A … F:</div>
-          <div class="scaffold-table cols-2">
-            ${places.map(p => `<div class="scaffold-head">${p}s</div>`).join('')}
-            ${places.map((p, i) => `<div class="scaffold-cell" id="hcell-${qi}-${i}" data-val="${p}" data-digit="0" onclick="toggleHexCell(${qi}, ${i})">0</div>`).join('')}
-          </div>
-          <div class="scaffold-total">Running total: <strong id="htotal-${qi}">0</strong></div>
-          <div class="fill-hint" style="margin-top:6px;">Reminder: A=10, B=11, C=12, D=13, E=14, F=15</div>
-        </div>
         <div class="fill-wrap">
           <span class="fill-hint" style="margin-bottom:4px;">Final answer (denary):</span>
           <input class="fill-input" id="fill-${qi}" type="text" inputmode="numeric"
@@ -1213,8 +1529,6 @@ function renderQuestions() {
     card.innerHTML = `
       <div class="q-meta">
         <span class="q-num">Q${qi + 1}</span>
-        <span class="q-topic">${q.topic}</span>
-        <span class="q-type-badge ${q.type}">${TYPE_LABELS[q.type]}</span>
       </div>
       <div class="q-text">${q.text}</div>
       ${inputHtml}`;
@@ -1235,39 +1549,6 @@ function selectDropdown(qi, val) {
     document.getElementById(`card-${qi}`).classList.remove('answered');
     updateProgress();
   }
-}
-
-function toggleScaffold(qi, ci, kind) {
-  const cell = document.getElementById(`bcell-${qi}-${ci}`);
-  const next = cell.dataset.on === '1' ? '0' : '1';
-  cell.dataset.on = next;
-  cell.textContent = next;
-  cell.classList.toggle('on', next === '1');
-  // Recompute running total
-  let total = 0;
-  document.querySelectorAll(`[id^="bcell-${qi}-"]`).forEach(c => {
-    if (c.dataset.on === '1') total += Number(c.dataset.val);
-  });
-  document.getElementById(`btotal-${qi}`).textContent = total;
-}
-
-const HEX_CHARS = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];
-function toggleHexCell(qi, ci) {
-  const cell = document.getElementById(`hcell-${qi}-${ci}`);
-  const cur = cell.dataset.digit || '0';
-  const idx = HEX_CHARS.indexOf(cur);
-  const next = HEX_CHARS[(idx + 1) % HEX_CHARS.length];
-  cell.dataset.digit = next;
-  cell.textContent = next;
-  cell.classList.toggle('hex-on', next !== '0');
-  // Recompute running total
-  let total = 0;
-  document.querySelectorAll(`[id^="hcell-${qi}-"]`).forEach(c => {
-    const d = c.dataset.digit || '0';
-    const v = HEX_CHARS.indexOf(d);
-    total += v * Number(c.dataset.val);
-  });
-  document.getElementById(`htotal-${qi}`).textContent = total;
 }
 
 function typeFill(qi, val) {
@@ -1387,9 +1668,11 @@ async function submitQuiz() {
     btn.style.background = '#f59e0b';
   }
 
-  // Show student a friendly result
+  // Show student a friendly result, then drop them into endless mode.
   setTimeout(() => {
-    alert(`Thanks ${studentName}! You scored ${score}/${total} (${pct}%).`);
+    alert(`Thanks ${studentName}! You scored ${score}/${total} (${pct}%).\n\nEndless mode is unlocked — keep practising while you wait!`);
+    try { sessionStorage.setItem('endlessUnlocked', '1'); } catch (e) {}
+    startEndlessMode();
   }, 200);
 }
 
