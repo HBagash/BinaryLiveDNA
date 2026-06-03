@@ -427,6 +427,12 @@
       color: #0f172a;
       font-size: 1.1rem;
     }
+    .pv-row.nibbles {
+      grid-template-columns: repeat(4, 1fr) 18px repeat(4, 1fr);
+    }
+    .pv-row.nibbles > .pv-cell:nth-child(5) {
+      grid-column-start: 6;
+    }
 
     /* ── Binary Addition ──────────────────────────── */
     .addition-block {
@@ -1796,7 +1802,17 @@ function renderQuestions() {
         </div>`;
 
     } else if (q.type === 'binary-to-hex') {
+      const bin = q.binary.padStart(8, '0');
+      const nibbleLabels = [8, 4, 2, 1, 8, 4, 2, 1];
       inputHtml = `
+        <div class="pv-table">
+          <div class="pv-row pv-row-labels nibbles">
+            ${nibbleLabels.map(v => `<div class="pv-cell pv-head">${v}</div>`).join('')}
+          </div>
+          <div class="pv-row pv-row-bits nibbles">
+            ${bin.split('').map(d => `<div class="pv-cell pv-bit">${d}</div>`).join('')}
+          </div>
+        </div>
         <div class="fill-wrap">
           <span class="fill-hint" style="margin-bottom:4px;">Final answer (hex):</span>
           <input class="fill-input" id="fill-${qi}" type="text" inputmode="text"
