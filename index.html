@@ -1762,11 +1762,9 @@ function renderQuestions() {
       inputHtml = `
         <div class="flipper-block">
           ${renderFlipperRow(qi, bits, 'fb', layout)}
-          <div class="flipper-sum">
-            ${q.type === 'binary-flipper'
-              ? `<span class="flipper-sum-label">Sum:</span> <strong id="flipper-sum-${qi}">0</strong>`
-              : `<span class="flipper-sum-label">Current:</span> <strong id="flipper-sum-${qi}">00</strong>`}
-          </div>
+          ${q.type === 'hex-to-binary-flipper'
+            ? `<div class="flipper-sum"><span class="flipper-sum-label">Current:</span> <strong id="flipper-sum-${qi}">00</strong></div>`
+            : ''}
         </div>`;
 
     } else if (q.type === 'binary-to-denary') {
