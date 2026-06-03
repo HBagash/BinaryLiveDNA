@@ -327,6 +327,123 @@
       font-weight: 700;
     }
 
+    /* ── Binary Flipper ──────────────────────────── */
+    .flipper-block {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 16px 14px;
+    }
+    .flipper-row-labels, .flipper-row-bits {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+    }
+    .flipper-row-labels { margin-bottom: 6px; }
+    .flipper-label {
+      text-align: center;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .flipper-bit {
+      text-align: center;
+      padding: 14px 0;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: all .12s;
+      color: var(--muted);
+    }
+    .flipper-bit:hover { border-color: var(--blue); }
+    .flipper-bit.on {
+      background: #dcfce7;
+      border-color: var(--green);
+      color: #15803d;
+    }
+    .flipper-sum {
+      text-align: center;
+      margin-top: 12px;
+      font-size: .95rem;
+      color: var(--text);
+      font-family: 'Consolas', 'Courier New', monospace;
+    }
+    .flipper-sum strong {
+      font-size: 1.2rem;
+      color: var(--blue-d);
+      margin-left: 4px;
+    }
+    .flipper-sum-label {
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      font-size: .78rem;
+    }
+
+    /* ── Binary Addition ──────────────────────────── */
+    .addition-block {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 16px;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+    .addition-row {
+      display: grid;
+      grid-template-columns: 28px repeat(8, 1fr);
+      gap: 6px;
+      align-items: center;
+    }
+    .add-gutter {
+      text-align: center;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--blue-d);
+    }
+    .add-digit {
+      text-align: center;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding: 8px 0;
+      color: var(--text);
+    }
+    .add-cell {
+      text-align: center;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 1.15rem;
+      font-weight: 700;
+      padding: 10px 0;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+      color: var(--muted);
+      transition: all .12s;
+    }
+    .add-cell:hover { border-color: var(--blue); }
+    .add-cell.on {
+      background: #dcfce7;
+      border-color: var(--green);
+      color: #15803d;
+    }
+    .addition-rule {
+      height: 2px;
+      background: #cbd5e1;
+      margin: 8px 0 10px;
+      margin-left: 32px;
+    }
+
     /* ── Endless Mode ─────────────────────────────── */
     #endless-main { display: none; max-width: 720px; margin: 32px auto; padding: 0 16px 64px; }
 
@@ -968,13 +1085,13 @@
   <div class="icon">🔢</div>
   <div>
     <h1>Binary & Hex — Do Now</h1>
-    <p>Bit lengths · Binary → Denary · Hexadecimal → Denary</p>
+    <p>Binary · Hex · Binary Addition</p>
   </div>
   <div class="student-tag" id="student-tag" style="display:none;"></div>
 </header>
 
 <main id="quiz-main" style="display:none;">
-  <div id="progress-label">0 / 5 answered</div>
+  <div id="progress-label">0 / 6 answered</div>
   <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
   <div id="questions-container"></div>
   <div id="submit-section">
@@ -1122,36 +1239,27 @@ try {
   console.error('Firebase init failed:', e);
 }
 
+const PLACE_VALUES_8 = [128, 64, 32, 16, 8, 4, 2, 1];
+
 /* ════════════════════════════════════════════════════
-   QUESTIONS  (types: 'dropdown' | 'scaffold-binary' | 'scaffold-hex')
+   QUESTIONS
+   types: 'binary-flipper' | 'binary-to-denary' | 'binary-addition'
+        | 'hex-to-denary'   | 'binary-to-hex'   | 'hex-to-binary-flipper'
    ════════════════════════════════════════════════════ */
 const QUESTIONS = [
-  // ── Q1a, Q1b, Q1c — Bit-length dropdowns (options scrambled per Q) ───
+  // ── Q1 — Binary flipper: build a target denary using 8-bit place values ──
   {
-    type: 'dropdown',
-    topic: 'Bit Lengths',
-    text: 'How many bits is the binary number <code>10110101</code>?',
-    options: ['4-bit', '1-bit', '8-bit'],
-    answer: '8-bit'
-  },
-  {
-    type: 'dropdown',
-    topic: 'Bit Lengths',
-    text: 'How many bits is the binary number <code>1</code>?',
-    options: ['8-bit', '4-bit', '1-bit'],
-    answer: '1-bit'
-  },
-  {
-    type: 'dropdown',
-    topic: 'Bit Lengths',
-    text: 'How many bits is the binary number <code>1011</code>?',
-    options: ['1-bit', '8-bit', '4-bit'],
-    answer: '4-bit'
+    type: 'binary-flipper',
+    topic: 'Denary → Binary',
+    text: 'Click the bits to make this binary number equal <strong>79</strong> in denary.',
+    target: 79,
+    accepted: ['01001111'],
+    display: '01001111'
   },
 
-  // ── Q2 — Binary → Denary with clickable place-value scaffold ─────────
+  // ── Q2 — Binary → Denary (type the answer) ───────────────────────────
   {
-    type: 'scaffold-binary',
+    type: 'binary-to-denary',
     topic: 'Binary → Denary',
     text: 'Convert the binary number <code>10110101</code> into denary.',
     binary: '10110101',
@@ -1160,41 +1268,81 @@ const QUESTIONS = [
     placeholder: 'Type the denary value…'
   },
 
-  // ── Q3 — Hex → Denary with hex scaffold ──────────────────────────────
+  // ── Q3 — Binary addition (click cells to build the sum) ──────────────
   {
-    type: 'scaffold-hex',
+    type: 'binary-addition',
+    topic: 'Binary Addition',
+    text: 'Add these two binary numbers. Click the bottom cells to build your answer.',
+    a: '00010110',
+    b: '00011011',
+    accepted: ['00110001'],
+    display: '00110001'
+  },
+
+  // ── Q4 — Hex → Denary (type the answer) ──────────────────────────────
+  {
+    type: 'hex-to-denary',
     topic: 'Hex → Denary',
     text: 'Convert the hexadecimal number <code>2A</code> into denary.',
     hex: '2A',
     accepted: ['42'],
     display: '42',
     placeholder: 'Type the denary value…'
+  },
+
+  // ── Q5 — Binary → Hex (type the hex answer) ──────────────────────────
+  {
+    type: 'binary-to-hex',
+    topic: 'Binary → Hex',
+    text: 'Convert the binary number <code>10110011</code> into hexadecimal.',
+    binary: '10110011',
+    accepted: ['b3'],
+    display: 'B3',
+    placeholder: 'Type the hex value…'
+  },
+
+  // ── Q6 — Hex → Binary flipper (click bits to match the hex value) ────
+  {
+    type: 'hex-to-binary-flipper',
+    topic: 'Hex → Binary',
+    text: 'Click the bits to make this binary number equal <strong>B3</strong> in hex.',
+    hex: 'B3',
+    accepted: ['10110011'],
+    display: '10110011'
   }
 ];
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 const TYPE_LABELS = {
-  dropdown: 'Multiple Choice',
-  'scaffold-binary': 'Binary → Denary',
-  'scaffold-hex': 'Hex → Denary'
+  'binary-flipper': 'Denary → Binary',
+  'binary-to-denary': 'Binary → Denary',
+  'binary-addition': 'Binary Addition',
+  'hex-to-denary': 'Hex → Denary',
+  'binary-to-hex': 'Binary → Hex',
+  'hex-to-binary-flipper': 'Hex → Binary'
 };
 
 function typeShortLabel(t) {
-  if (t === 'dropdown') return 'MC';
-  if (t === 'scaffold-binary') return 'Bin';
-  if (t === 'scaffold-hex') return 'Hex';
+  if (t === 'binary-flipper') return 'Flip';
+  if (t === 'binary-to-denary') return 'B→D';
+  if (t === 'binary-addition') return 'Add';
+  if (t === 'hex-to-denary') return 'H→D';
+  if (t === 'binary-to-hex') return 'B→H';
+  if (t === 'hex-to-binary-flipper') return 'H→B';
   return 'Q';
 }
 function typeColorFor(t) {
-  if (t === 'dropdown') return '#6d28d9';
-  if (t === 'scaffold-binary') return '#065f46';
-  if (t === 'scaffold-hex') return '#92400e';
+  if (t === 'binary-flipper' || t === 'hex-to-binary-flipper') return '#1d4ed8';
+  if (t === 'binary-to-denary' || t === 'binary-to-hex') return '#065f46';
+  if (t === 'hex-to-denary') return '#92400e';
+  if (t === 'binary-addition') return '#6d28d9';
   return '#64748b';
 }
 function typeColorPair(t) {
-  if (t === 'dropdown') return ['#ede9fe', '#6d28d9'];
-  if (t === 'scaffold-binary') return ['#ecfdf5', '#065f46'];
-  if (t === 'scaffold-hex') return ['#fef3c7', '#92400e'];
+  if (t === 'binary-flipper' || t === 'hex-to-binary-flipper') return ['#eff6ff', '#1d4ed8'];
+  if (t === 'binary-to-denary' || t === 'binary-to-hex') return ['#ecfdf5', '#065f46'];
+  if (t === 'hex-to-denary') return ['#fef3c7', '#92400e'];
+  if (t === 'binary-addition') return ['#ede9fe', '#6d28d9'];
   return ['#e2e8f0', '#64748b'];
 }
 
@@ -1279,7 +1427,18 @@ function forgetMe() {
 
 // Auto-start if we already know who you are
 // (Endless-mode lock takes priority and is checked first.)
+const QUIZ_VERSION = 'v2-6q';
 (function bootFlow() {
+  // If the quiz version changed (e.g. new questions deployed), clear the
+  // endless-mode lock so students see the new quiz instead of being stuck
+  // in endless mode from a previous version.
+  try {
+    if (localStorage.getItem('quizVersion') !== QUIZ_VERSION) {
+      sessionStorage.removeItem('endlessUnlocked');
+      localStorage.setItem('quizVersion', QUIZ_VERSION);
+    }
+  } catch (e) {}
+
   // If they've already submitted this session, jump straight to endless mode.
   try {
     if (sessionStorage.getItem('endlessUnlocked') === '1') {
@@ -1497,6 +1656,20 @@ function startEndlessMode() {
 /* ════════════════════════════════════════════════════
    RENDER
    ════════════════════════════════════════════════════ */
+
+function renderFlipperRow(qi, bits, idPrefix) {
+  return `
+    <div class="flipper-row-labels">
+      ${PLACE_VALUES_8.map(v => `<div class="flipper-label">${v}</div>`).join('')}
+    </div>
+    <div class="flipper-row-bits">
+      ${bits.map((b, i) => `
+        <div class="flipper-bit ${b === 1 ? 'on' : ''}" id="${idPrefix}-${qi}-${i}"
+             onclick="toggleFlipperBit(${qi}, ${i})">${b}</div>
+      `).join('')}
+    </div>`;
+}
+
 function renderQuestions() {
   const container = document.getElementById('questions-container');
   container.innerHTML = '';
@@ -1508,34 +1681,120 @@ function renderQuestions() {
 
     let inputHtml = '';
 
-    if (q.type === 'dropdown') {
-      inputHtml = `<div class="dropdown-wrap">
-        <select id="dd-${qi}" onchange="selectDropdown(${qi}, this.value)">
-          <option value="">— Choose one —</option>
-          ${q.options.map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('')}
-        </select>
-      </div>`;
+    if (q.type === 'binary-flipper' || q.type === 'hex-to-binary-flipper') {
+      // Initialize answer as 8-bit array of zeros
+      if (!Array.isArray(answers[qi])) answers[qi] = [0, 0, 0, 0, 0, 0, 0, 0];
+      const bits = answers[qi];
+      inputHtml = `
+        <div class="flipper-block">
+          ${renderFlipperRow(qi, bits, 'fb')}
+          <div class="flipper-sum">
+            ${q.type === 'binary-flipper'
+              ? `<span class="flipper-sum-label">Sum:</span> <strong id="flipper-sum-${qi}">0</strong>`
+              : `<span class="flipper-sum-label">Current:</span> <strong id="flipper-sum-${qi}">00</strong>`}
+          </div>
+        </div>`;
 
-    } else if (q.type === 'scaffold-binary' || q.type === 'scaffold-hex') {
+    } else if (q.type === 'binary-to-denary' || q.type === 'hex-to-denary') {
+      const label = q.type === 'binary-to-denary'
+        ? 'Final answer (denary):'
+        : 'Final answer (denary):';
       inputHtml = `
         <div class="fill-wrap">
-          <span class="fill-hint" style="margin-bottom:4px;">Final answer (denary):</span>
+          <span class="fill-hint" style="margin-bottom:4px;">${label}</span>
           <input class="fill-input" id="fill-${qi}" type="text" inputmode="numeric"
             placeholder="${q.placeholder}" autocomplete="off" autocorrect="off" spellcheck="false"
             oninput="typeFill(${qi}, this.value)" />
+        </div>`;
+
+    } else if (q.type === 'binary-to-hex') {
+      inputHtml = `
+        <div class="fill-wrap">
+          <span class="fill-hint" style="margin-bottom:4px;">Final answer (hex):</span>
+          <input class="fill-input" id="fill-${qi}" type="text" inputmode="text"
+            placeholder="${q.placeholder}" autocomplete="off" autocorrect="off" spellcheck="false"
+            maxlength="4"
+            oninput="typeFill(${qi}, this.value.toUpperCase())" />
+        </div>`;
+
+    } else if (q.type === 'binary-addition') {
+      if (!Array.isArray(answers[qi])) answers[qi] = [0, 0, 0, 0, 0, 0, 0, 0];
+      const bits = answers[qi];
+      inputHtml = `
+        <div class="addition-block">
+          <div class="addition-row">
+            <div class="add-gutter"></div>
+            ${q.a.split('').map(d => `<div class="add-digit">${d}</div>`).join('')}
+          </div>
+          <div class="addition-row">
+            <div class="add-gutter add-plus">+</div>
+            ${q.b.split('').map(d => `<div class="add-digit">${d}</div>`).join('')}
+          </div>
+          <div class="addition-rule"></div>
+          <div class="addition-row">
+            <div class="add-gutter"></div>
+            ${bits.map((b, i) => `
+              <div class="add-cell ${b === 1 ? 'on' : ''}" id="ac-${qi}-${i}"
+                   onclick="toggleFlipperBit(${qi}, ${i})">${b}</div>
+            `).join('')}
+          </div>
         </div>`;
     }
 
     card.innerHTML = `
       <div class="q-meta">
         <span class="q-num">Q${qi + 1}</span>
+        <span class="q-topic">${escapeHtml(q.topic)}</span>
       </div>
       <div class="q-text">${q.text}</div>
       ${inputHtml}`;
 
     container.appendChild(card);
   });
+
+  // Set initial flipper sums
+  QUESTIONS.forEach((q, qi) => {
+    if (q.type === 'binary-flipper' || q.type === 'hex-to-binary-flipper') {
+      updateFlipperSum(qi);
+    }
+  });
+
   document.getElementById('progress-label').textContent = `0 / ${QUESTIONS.length} answered`;
+}
+
+function toggleFlipperBit(qi, bitIdx) {
+  if (!Array.isArray(answers[qi])) answers[qi] = [0, 0, 0, 0, 0, 0, 0, 0];
+  answers[qi][bitIdx] = answers[qi][bitIdx] === 1 ? 0 : 1;
+  const q = QUESTIONS[qi];
+
+  // Update the visual cell
+  const prefix = q.type === 'binary-addition' ? 'ac' : 'fb';
+  const cell = document.getElementById(`${prefix}-${qi}-${bitIdx}`);
+  if (cell) {
+    cell.textContent = answers[qi][bitIdx];
+    cell.classList.toggle('on', answers[qi][bitIdx] === 1);
+  }
+
+  if (q.type === 'binary-flipper' || q.type === 'hex-to-binary-flipper') {
+    updateFlipperSum(qi);
+  }
+
+  // Any interaction marks it answered
+  document.getElementById(`card-${qi}`).classList.add('answered');
+  updateProgress();
+}
+
+function updateFlipperSum(qi) {
+  const q = QUESTIONS[qi];
+  const bits = answers[qi] || [0, 0, 0, 0, 0, 0, 0, 0];
+  const sum = bits.reduce((acc, b, i) => acc + (b ? PLACE_VALUES_8[i] : 0), 0);
+  const el = document.getElementById(`flipper-sum-${qi}`);
+  if (!el) return;
+  if (q.type === 'binary-flipper') {
+    el.textContent = String(sum);
+  } else {
+    el.textContent = sum.toString(16).toUpperCase().padStart(2, '0');
+  }
 }
 
 /* ════════════════════════════════════════════════════
@@ -1569,8 +1828,13 @@ function markAnswered(qi) {
 
 function isAnswered(qi) {
   const a = answers[qi];
-  if (a === null) return false;
+  if (a === null || a === undefined) return false;
   if (typeof a === 'string') return a.trim().length > 0;
+  if (Array.isArray(a)) {
+    // Flipper / addition counts as answered if the card has been touched
+    const card = document.getElementById(`card-${qi}`);
+    return card ? card.classList.contains('answered') : false;
+  }
   return true;
 }
 
@@ -1588,8 +1852,11 @@ function checkCorrect(qi) {
   const q = QUESTIONS[qi];
   const a = answers[qi];
   if (!isAnswered(qi)) return false;
-  if (q.type === 'dropdown') return a === q.answer;
-  if (q.type === 'scaffold-binary' || q.type === 'scaffold-hex') {
+  if (q.type === 'binary-flipper' || q.type === 'hex-to-binary-flipper' || q.type === 'binary-addition') {
+    const bits = Array.isArray(a) ? a.join('') : '';
+    return q.accepted.includes(bits);
+  }
+  if (q.type === 'binary-to-denary' || q.type === 'hex-to-denary' || q.type === 'binary-to-hex') {
     return q.accepted.includes(String(a).toLowerCase().trim());
   }
   return false;
@@ -1599,13 +1866,12 @@ function getDisplayAnswer(qi) {
   const q = QUESTIONS[qi];
   const a = answers[qi];
   if (!isAnswered(qi)) return 'Not answered';
+  if (Array.isArray(a)) return a.join('');
   return String(a);
 }
 
 function getCorrectDisplay(qi) {
-  const q = QUESTIONS[qi];
-  if (q.type === 'dropdown') return q.answer;
-  return q.display;
+  return QUESTIONS[qi].display;
 }
 
 /* ════════════════════════════════════════════════════
@@ -2973,7 +3239,7 @@ function generateStudentReport() {
   ctx.fillText(classCode ? `${studentName}  ·  Class ${classCode}` : studentName, PAD, 62);
   ctx.font = '13px "Segoe UI", sans-serif';
   ctx.fillStyle = 'rgba(255,255,255,.82)';
-  ctx.fillText('Bit Lengths · Binary → Denary · Hex → Denary', PAD, 82);
+  ctx.fillText('Binary · Hex · Binary Addition', PAD, 82);
   ctx.fillText(dateStr, PAD, 100);
 
   // Score Summary
