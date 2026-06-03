@@ -386,6 +386,47 @@
       letter-spacing: .5px;
       font-size: .78rem;
     }
+    /* Nibble layout: visual gap between the high and low nibble */
+    .flipper-row-labels.nibbles, .flipper-row-bits.nibbles {
+      grid-template-columns: repeat(4, 1fr) 18px repeat(4, 1fr);
+    }
+    .flipper-row-labels.nibbles > .flipper-label:nth-child(5),
+    .flipper-row-bits.nibbles > .flipper-bit:nth-child(5) {
+      grid-column-start: 6;
+    }
+
+    /* ── Place-value table (Q2 Binary → Denary) ───── */
+    .pv-table {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+    .pv-row {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+    }
+    .pv-cell {
+      text-align: center;
+      padding: 10px 0;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-weight: 700;
+      border-radius: 6px;
+    }
+    .pv-head {
+      background: #1d4ed8;
+      color: white;
+      font-size: .9rem;
+    }
+    .pv-row-bits { margin-top: 4px; }
+    .pv-bit {
+      background: white;
+      border: 1px solid var(--border);
+      color: #0f172a;
+      font-size: 1.1rem;
+    }
 
     /* ── Binary Addition ──────────────────────────── */
     .addition-block {
@@ -442,6 +483,33 @@
       background: #cbd5e1;
       margin: 8px 0 10px;
       margin-left: 32px;
+    }
+    .addition-carry-row { margin-bottom: 4px; }
+    .add-carry-label {
+      color: var(--muted);
+      font-size: .85rem;
+      font-style: italic;
+    }
+    .add-carry {
+      text-align: center;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: .95rem;
+      font-weight: 700;
+      padding: 4px 0;
+      background: white;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      color: var(--muted);
+      transition: all .12s;
+    }
+    .add-carry:hover { border-color: var(--blue); border-style: solid; }
+    .add-carry.on {
+      background: #fef3c7;
+      border-color: #f59e0b;
+      border-style: solid;
+      color: #92400e;
     }
 
     /* ── Endless Mode ─────────────────────────────── */
@@ -1657,12 +1725,17 @@ function startEndlessMode() {
    RENDER
    ════════════════════════════════════════════════════ */
 
-function renderFlipperRow(qi, bits, idPrefix) {
+function renderFlipperRow(qi, bits, idPrefix, layout) {
+  // layout: 'standard' (8 bits, place values 128..1) or 'nibbles' (4|4 with 8421|8421)
+  const isNibbles = layout === 'nibbles';
+  const labels = isNibbles ? [8, 4, 2, 1, 8, 4, 2, 1] : PLACE_VALUES_8;
+  const labelsCls = isNibbles ? 'flipper-row-labels nibbles' : 'flipper-row-labels';
+  const bitsCls   = isNibbles ? 'flipper-row-bits nibbles'   : 'flipper-row-bits';
   return `
-    <div class="flipper-row-labels">
-      ${PLACE_VALUES_8.map(v => `<div class="flipper-label">${v}</div>`).join('')}
+    <div class="${labelsCls}">
+      ${labels.map(v => `<div class="flipper-label">${v}</div>`).join('')}
     </div>
-    <div class="flipper-row-bits">
+    <div class="${bitsCls}">
       ${bits.map((b, i) => `
         <div class="flipper-bit ${b === 1 ? 'on' : ''}" id="${idPrefix}-${qi}-${i}"
              onclick="toggleFlipperBit(${qi}, ${i})">${b}</div>
@@ -1685,9 +1758,10 @@ function renderQuestions() {
       // Initialize answer as 8-bit array of zeros
       if (!Array.isArray(answers[qi])) answers[qi] = [0, 0, 0, 0, 0, 0, 0, 0];
       const bits = answers[qi];
+      const layout = q.type === 'hex-to-binary-flipper' ? 'nibbles' : 'standard';
       inputHtml = `
         <div class="flipper-block">
-          ${renderFlipperRow(qi, bits, 'fb')}
+          ${renderFlipperRow(qi, bits, 'fb', layout)}
           <div class="flipper-sum">
             ${q.type === 'binary-flipper'
               ? `<span class="flipper-sum-label">Sum:</span> <strong id="flipper-sum-${qi}">0</strong>`
@@ -1695,13 +1769,29 @@ function renderQuestions() {
           </div>
         </div>`;
 
-    } else if (q.type === 'binary-to-denary' || q.type === 'hex-to-denary') {
-      const label = q.type === 'binary-to-denary'
-        ? 'Final answer (denary):'
-        : 'Final answer (denary):';
+    } else if (q.type === 'binary-to-denary') {
+      // Show a place-value table above the input
+      const bin = q.binary.padStart(8, '0');
+      inputHtml = `
+        <div class="pv-table">
+          <div class="pv-row pv-row-labels">
+            ${PLACE_VALUES_8.map(v => `<div class="pv-cell pv-head">${v}</div>`).join('')}
+          </div>
+          <div class="pv-row pv-row-bits">
+            ${bin.split('').map(d => `<div class="pv-cell pv-bit">${d}</div>`).join('')}
+          </div>
+        </div>
+        <div class="fill-wrap">
+          <span class="fill-hint" style="margin-bottom:4px;">Final answer (denary):</span>
+          <input class="fill-input" id="fill-${qi}" type="text" inputmode="numeric"
+            placeholder="${q.placeholder}" autocomplete="off" autocorrect="off" spellcheck="false"
+            oninput="typeFill(${qi}, this.value)" />
+        </div>`;
+
+    } else if (q.type === 'hex-to-denary') {
       inputHtml = `
         <div class="fill-wrap">
-          <span class="fill-hint" style="margin-bottom:4px;">${label}</span>
+          <span class="fill-hint" style="margin-bottom:4px;">Final answer (denary):</span>
           <input class="fill-input" id="fill-${qi}" type="text" inputmode="numeric"
             placeholder="${q.placeholder}" autocomplete="off" autocorrect="off" spellcheck="false"
             oninput="typeFill(${qi}, this.value)" />
@@ -1719,9 +1809,19 @@ function renderQuestions() {
 
     } else if (q.type === 'binary-addition') {
       if (!Array.isArray(answers[qi])) answers[qi] = [0, 0, 0, 0, 0, 0, 0, 0];
+      // 8 carry slots; carry[i] is the carry INTO column i (so carry[0] is the carry into the most-significant column)
+      if (!Array.isArray(answers['carry-' + qi])) answers['carry-' + qi] = [0, 0, 0, 0, 0, 0, 0, 0];
       const bits = answers[qi];
+      const carry = answers['carry-' + qi];
       inputHtml = `
         <div class="addition-block">
+          <div class="addition-row addition-carry-row">
+            <div class="add-gutter add-carry-label">c</div>
+            ${carry.map((c, i) => `
+              <div class="add-carry ${c === 1 ? 'on' : ''}" id="acarry-${qi}-${i}"
+                   onclick="toggleCarryBit(${qi}, ${i})">${c}</div>
+            `).join('')}
+          </div>
           <div class="addition-row">
             <div class="add-gutter"></div>
             ${q.a.split('').map(d => `<div class="add-digit">${d}</div>`).join('')}
@@ -1780,6 +1880,21 @@ function toggleFlipperBit(qi, bitIdx) {
   }
 
   // Any interaction marks it answered
+  document.getElementById(`card-${qi}`).classList.add('answered');
+  updateProgress();
+}
+
+function toggleCarryBit(qi, bitIdx) {
+  const key = 'carry-' + qi;
+  if (!Array.isArray(answers[key])) answers[key] = [0, 0, 0, 0, 0, 0, 0, 0];
+  answers[key][bitIdx] = answers[key][bitIdx] === 1 ? 0 : 1;
+  const cell = document.getElementById(`acarry-${qi}-${bitIdx}`);
+  if (cell) {
+    cell.textContent = answers[key][bitIdx];
+    cell.classList.toggle('on', answers[key][bitIdx] === 1);
+  }
+  // Carry edits don't on their own mean the answer row is filled, but
+  // they do count as engagement with the question.
   document.getElementById(`card-${qi}`).classList.add('answered');
   updateProgress();
 }
